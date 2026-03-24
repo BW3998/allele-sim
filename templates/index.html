@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Allele Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Animated DNA background -->
+    <canvas id="dna-canvas"></canvas>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="dna-icon">
+                        <span class="helix helix-1"></span>
+                        <span class="helix helix-2"></span>
+                    </div>
+                    <div>
+                        <h1>Allele Simulator</h1>
+                        <p class="subtitle">Mendelian Genetics &amp; Hardy-Weinberg Equilibrium</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Controls Panel -->
+            <section class="panel controls-panel">
+                <div class="panel-header">
+                    <h2>Population Configuration</h2>
+                    <p class="panel-desc">Set the initial genotype counts for your population</p>
+                </div>
+
+                <div class="genotype-grid">
+                    <div class="genotype-card dominant">
+                        <div class="genotype-badge">RR</div>
+                        <label>Homozygous Dominant</label>
+                        <div class="input-group">
+                            <button class="btn-adjust" onclick="adjust('num_RR', -1)">−</button>
+                            <input type="number" id="num_RR" value="1" min="0" max="1000">
+                            <button class="btn-adjust" onclick="adjust('num_RR', 1)">+</button>
+                        </div>
+                        <div class="allele-visual">
+                            <span class="allele allele-R">R</span><span class="allele allele-R">R</span>
+                        </div>
+                    </div>
+
+                    <div class="genotype-card hetero">
+                        <div class="genotype-badge">Rr</div>
+                        <label>Heterozygous</label>
+                        <div class="input-group">
+                            <button class="btn-adjust" onclick="adjust('num_Rr', -1)">−</button>
+                            <input type="number" id="num_Rr" value="1" min="0" max="1000">
+                            <button class="btn-adjust" onclick="adjust('num_Rr', 1)">+</button>
+                        </div>
+                        <div class="allele-visual">
+                            <span class="allele allele-R">R</span><span class="allele allele-r">r</span>
+                        </div>
+                    </div>
+
+                    <div class="genotype-card recessive">
+                        <div class="genotype-badge">rr</div>
+                        <label>Homozygous Recessive</label>
+                        <div class="input-group">
+                            <button class="btn-adjust" onclick="adjust('num_rr', -1)">−</button>
+                            <input type="number" id="num_rr" value="1" min="0" max="1000">
+                            <button class="btn-adjust" onclick="adjust('num_rr', 1)">+</button>
+                        </div>
+                        <div class="allele-visual">
+                            <span class="allele allele-r">r</span><span class="allele allele-r">r</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="matings-section">
+                    <label for="num_matings">Number of Matings</label>
+                    <div class="matings-control">
+                        <input type="range" id="matings_slider" min="1000" max="5000000" value="1000000" step="1000">
+                        <input type="number" id="num_matings" value="1000000" min="1000" max="5000000">
+                    </div>
+                    <div class="matings-presets">
+                        <button class="preset-btn" onclick="setMatings(10000)">10K</button>
+                        <button class="preset-btn" onclick="setMatings(100000)">100K</button>
+                        <button class="preset-btn active" onclick="setMatings(1000000)">1M</button>
+                        <button class="preset-btn" onclick="setMatings(5000000)">5M</button>
+                    </div>
+                </div>
+
+                <!-- Allele Frequency Preview -->
+                <div class="freq-preview">
+                    <div class="freq-bar-container">
+                        <div class="freq-label">Allele Frequencies</div>
+                        <div class="freq-bar">
+                            <div class="freq-fill freq-R" id="freqBarR" style="width: 66.67%">
+                                <span>R: 66.67%</span>
+                            </div>
+                            <div class="freq-fill freq-r" id="freqBarr" style="width: 33.33%">
+                                <span>r: 33.33%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-simulate" id="simulateBtn" onclick="runSimulation()">
+                    <span class="btn-text">Run Simulation</span>
+                    <span class="btn-loader" id="btnLoader"></span>
+                </button>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section" id="resultsSection">
+                <!-- Stats Overview -->
+                <div class="stats-row">
+                    <div class="stat-card" id="statRR">
+                        <div class="stat-genotype">RR</div>
+                        <div class="stat-count" id="countRR">—</div>
+                        <div class="stat-percent" id="pctRR">—</div>
+                        <div class="stat-bar"><div class="stat-bar-fill dominant-fill" id="barRR"></div></div>
+                    </div>
+                    <div class="stat-card" id="statRr">
+                        <div class="stat-genotype">Rr</div>
+                        <div class="stat-count" id="countRr">—</div>
+                        <div class="stat-percent" id="pctRr">—</div>
+                        <div class="stat-bar"><div class="stat-bar-fill hetero-fill" id="barRr"></div></div>
+                    </div>
+                    <div class="stat-card" id="statrr">
+                        <div class="stat-genotype">rr</div>
+                        <div class="stat-count" id="countrr">—</div>
+                        <div class="stat-percent" id="pctrr">—</div>
+                        <div class="stat-bar"><div class="stat-bar-fill recessive-fill" id="barrr"></div></div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <div class="panel chart-panel">
+                        <h3>Genotype Distribution</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="panel chart-panel">
+                        <h3>Proportion Breakdown</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="doughnutChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hardy-Weinberg Comparison -->
+                <div class="panel hw-panel">
+                    <div class="hw-header">
+                        <h3>Hardy-Weinberg Equilibrium</h3>
+                        <p class="panel-desc">Comparing observed frequencies with expected values (p&sup2; + 2pq + q&sup2; = 1)</p>
+                    </div>
+                    <div class="hw-grid">
+                        <div class="hw-formula">
+                            <div class="hw-equation">
+                                <span class="hw-var">p</span> = freq(<span class="allele-inline R">R</span>) = <span id="hwFreqR">—</span>
+                            </div>
+                            <div class="hw-equation">
+                                <span class="hw-var">q</span> = freq(<span class="allele-inline r">r</span>) = <span id="hwFreqr">—</span>
+                            </div>
+                            <div class="hw-divider"></div>
+                            <div class="hw-equation">
+                                p&sup2; = <span id="hwExpRR">—</span>%
+                            </div>
+                            <div class="hw-equation">
+                                2pq = <span id="hwExpRr">—</span>%
+                            </div>
+                            <div class="hw-equation">
+                                q&sup2; = <span id="hwExprr">—</span>%
+                            </div>
+                        </div>
+                        <div class="hw-chart-container">
+                            <canvas id="hwChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Punnett Square -->
+                <div class="panel punnett-panel">
+                    <h3>Population Punnett Square</h3>
+                    <p class="panel-desc">Allele contribution probabilities based on population composition</p>
+                    <div class="punnett-wrapper">
+                        <table class="punnett-table" id="punnettTable">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th class="punnett-header">R (<span id="punnR1">—</span>)</th>
+                                    <th class="punnett-header">r (<span id="punnr1">—</span>)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th class="punnett-header">R (<span id="punnR2">—</span>)</th>
+                                    <td class="punnett-cell dominant-cell">
+                                        <div class="punnett-genotype">RR</div>
+                                        <div class="punnett-prob" id="punnRR">—</div>
+                                    </td>
+                                    <td class="punnett-cell hetero-cell">
+                                        <div class="punnett-genotype">Rr</div>
+                                        <div class="punnett-prob" id="punnRr1">—</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th class="punnett-header">r (<span id="punnr2">—</span>)</th>
+                                    <td class="punnett-cell hetero-cell">
+                                        <div class="punnett-genotype">Rr</div>
+                                        <div class="punnett-prob" id="punnRr2">—</div>
+                                    </td>
+                                    <td class="punnett-cell recessive-cell">
+                                        <div class="punnett-genotype">rr</div>
+                                        <div class="punnett-prob" id="punnrr">—</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>Allele Simulator &mdash; Mendelian Genetics Visualization</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
