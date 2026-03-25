@@ -90,13 +90,13 @@ document.getElementById('matings_slider').addEventListener('input', function () 
 });
 
 document.getElementById('num_matings').addEventListener('input', function () {
-    const val = Math.min(5000000, Math.max(1000, parseInt(this.value) || 1000));
+    const val = Math.min(2000000, Math.max(1000, parseInt(this.value) || 1000));
     document.getElementById('matings_slider').value = val;
     updatePresetHighlight(val);
 });
 
 function updatePresetHighlight(val) {
-    const presets = { 10000: 0, 100000: 1, 1000000: 2, 5000000: 3 };
+    const presets = { 10000: 0, 100000: 1, 1000000: 2, 2000000: 3 };
     document.querySelectorAll('.preset-btn').forEach((btn, i) => {
         btn.classList.remove('active');
     });

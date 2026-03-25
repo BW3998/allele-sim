@@ -2,7 +2,7 @@ import random
 from collections import Counter
 from flask import Flask, render_template, jsonify, request
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='public', static_url_path='')
 
 
 def offspring(p1, p2):
@@ -71,7 +71,7 @@ def simulate():
     num_rr = int(data.get("num_rr", 1))
     num_matings = int(data.get("num_matings", 100000))
 
-    num_matings = min(num_matings, 5_000_000)
+    num_matings = min(num_matings, 2_000_000)
 
     result = run_simulation(num_RR, num_Rr, num_rr, num_matings)
     return jsonify(result)

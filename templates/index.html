@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
     <!-- Animated DNA background -->
@@ -83,14 +83,14 @@
                 <div class="matings-section">
                     <label for="num_matings">Number of Matings</label>
                     <div class="matings-control">
-                        <input type="range" id="matings_slider" min="1000" max="5000000" value="1000000" step="1000">
-                        <input type="number" id="num_matings" value="1000000" min="1000" max="5000000">
+                        <input type="range" id="matings_slider" min="1000" max="2000000" value="1000000" step="1000">
+                        <input type="number" id="num_matings" value="1000000" min="1000" max="2000000">
                     </div>
                     <div class="matings-presets">
                         <button class="preset-btn" onclick="setMatings(10000)">10K</button>
                         <button class="preset-btn" onclick="setMatings(100000)">100K</button>
                         <button class="preset-btn active" onclick="setMatings(1000000)">1M</button>
-                        <button class="preset-btn" onclick="setMatings(5000000)">5M</button>
+                        <button class="preset-btn" onclick="setMatings(2000000)">2M</button>
                     </div>
                 </div>
 
@@ -234,6 +234,6 @@
         </footer>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="/script.js"></script>
 </body>
 </html>
